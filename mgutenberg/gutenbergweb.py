@@ -129,7 +129,7 @@ def _parse_archive_json(json):
 				authors,
 				book['title'],
 				','.join(x for x in book['language']),
-				book['mediatype']
+				_(book['mediatype'])
 				))
 
 	return entries
