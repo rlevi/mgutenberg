@@ -36,25 +36,23 @@ def search(author=None, title=None, etextnr=None, subject=None, pageno=0):
 
         authors = [(name, real_name, date, role), ...]
     """
-    if not author:
-        author = ''
-    if not title:
-        # NB. space switches to better Gutenberg search output
-        title = ' '
-    if not etextnr:
-        etextnr = ''
-    if not subject:
-        subject = ''
 
-    data = _urllib.urlencode([('author', unicode(author)),
-                              ('title', unicode(title)),
-                              ('subject', unicode(subject)),
-                              ('etextnr', unicode(etextnr)),
-                              ('pageno', unicode(pageno))])
-    url = _SEARCH_URL + '?' + data
+    query = ''
+
+    if title:
+        query = query + 'title:(' + title + ')' + ' AND '
+    if author:
+        query = query + 'creator:(' + author + ')' + ' AND '
+    if subject:
+        query = query + 'subject:(' + subject + ')' + ' AND '
+    query = query + 'collection:(' + 'gutenberg' + ')'
+
+    data = _urllib.urlencode([('q', unicode(query))])
+
+    url = _SEARCH_URL + '?' + data + '&output=json&fl[]=identifier'
     
     output = _fetch_page(url)
-    entries = _parse_gutenberg_search_html(output)
+    entries = [] #FIXME: parse json here
     
     # NB. Gutenberg search sometimes return duplicate entries
     return unique(entries, key=lambda x: x[0])
@@ -98,7 +96,7 @@ def _strip_tags(snippet):
 # Urls
 #------------------------------------------------------------------------------
 
-_SEARCH_URL = "http://www.gutenberg.org/catalog/world/results"
+_SEARCH_URL = "http://archive.org/advancedsearch.php"
 _ETEXT_URL = "http://www.gutenberg.org/etext/%(etext)d"
 _PLUCKER_URL = "http://www.gutenberg.org/cache/plucker/%(etext)d/%(etext)d"
 _DOWNLOAD_URL_BASE = "http://www.gutenberg.org"
