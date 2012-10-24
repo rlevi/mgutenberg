@@ -65,9 +65,9 @@ def etext_info(identifier):
     """
     parse entry
     """
-	info = []
+    info = []
 	
-	xml = _fetch_page(_DOWNLOAD_FILES % dict(id=identifier))
+    xml = _fetch_page(_DOWNLOAD_FILES % dict(id=identifier))
     files = _xml.fromstring(xml)
     for f in files:
 		format = f.find('format').text
