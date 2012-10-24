@@ -212,13 +212,13 @@ class GutenbergSearchList(gtk.ListStore):
     """
 
     def __init__(self):
-        gtk.ListStore.__init__(self, str, str, str, str, int, str)
+        gtk.ListStore.__init__(self, str, str, str, str, str, str)
         self.pages = []
         self.pageno = 0
         self.last_search = None
 
     def add(self, author=u"", title=u"", language=u"",
-            category=u"", etext_id=-1, author_other=u""):
+            category=u"", etext_id=u"", author_other=u""):
         return self.append((author, title, language, category, etext_id,
                             author_other))
 
