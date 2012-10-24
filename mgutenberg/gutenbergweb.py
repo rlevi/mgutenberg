@@ -17,6 +17,7 @@ Routines
   Returns [(url, format, encoding, compression), ...]
 """
 import urllib as _urllib, re as _re
+import json as _json, xml.etree.ElementTree as _xml
 from gettext import gettext as _
 
 from util import *
@@ -51,33 +52,38 @@ def search(author=None, title=None, etextnr=None, subject=None, pageno=0):
 
     info = [	'collection', 'identifier',
                 'creator', 'title', 'language', 'subject',
-		'type', 'source']
+                'mediatype', 'source']
     url = _SEARCH_URL + '?' + data + '&output=json&fl[]=' + '&fl[]='.join(x for x in info)
     
     output = _fetch_page(url)
-    entries = [] #FIXME: parse json here
+    entries = _parse_archive_json(output)
     
     # NB. Gutenberg search sometimes return duplicate entries
     return unique(entries, key=lambda x: x[0])
 
-def etext_info(etext_id):
+def etext_info(identifier):
     """
-    Get info concerning an Etext in the Project Gutenberg catalog
-
-    :Returns:
-        [(url, description), ...], infodict
-
-        infodict contains information about the whole entry.
-        Keys: 'category'
+    parse entry
     """
-    output = _fetch_page(_ETEXT_URL % dict(etext=etext_id))
-    return _parse_gutenberg_ebook_html(etext_id, output)
+	info = []
+	
+	xml = _fetch_page(_DOWNLOAD_FILES % dict(id=identifier))
+    files = _xml.fromstring(xml)
+    for f in files:
+		format = f.find('format').text
+		name = f.get('name')
 
+		if format != 'Metadata':
+			url = _DOWNLOAD_FILE % dict(id=identifier, f=name)
+			info.append(( url, format ))
+
+    category = 'Text'
+
+    return info, dict(category=category)
 #------------------------------------------------------------------------------
 # Helpers
 #------------------------------------------------------------------------------
 
-_TAG_RE = _re.compile("<[^>]+>")
 
 def _fetch_page(url):
     h = myurlopen(url)
@@ -86,198 +92,59 @@ def _fetch_page(url):
     finally:
         h.close()
 
-def _strip_tags(snippet):
-    snippet = snippet.replace("&nbsp;", " ")
-    snippet = snippet.replace("&quot;", "\"")
-    snippet = snippet.replace("\r", " ")
-    snippet = snippet.replace("\n", " ")
-    snippet = snippet.replace("<br>", "\n")
-    snippet = snippet.replace("<li>", "\n")
-    return _TAG_RE.subn('', snippet)[0]
+
+def _parse_archive_json(json):
+	"""
+	Parse json reply into entries
+	"""
+
+	entries = []
+	j = _json.loads(json)
+
+	docs = j['response']['docs']
+	for book in docs:
+		authors = _parse_archive_authors(book['creator'])
+
+		entries.append((
+				book['identifier'],
+				authors,
+				book['title'],
+				','.join(x for x in book['language']),
+				book['mediatype']
+				))
+
+	return entries
+
+
+def _parse_archive_authors(aut):
+	authors = []
+
+	for author in aut:
+		name = real_name = date = u''
+		role = u'author'
+
+		t = author.split(',')
+		if len(t)>0:
+			name = t[0]
+		if len(t)>1:
+			name = name + ',' + t[1]
+		if len(t)>2:
+			date = t[2]
+		if len(t)>3:
+			real_name = t[3]
+		if len(t)>4:
+			role = t[4]
+
+		authors.append((name, real_name, date, role))
+
+	return authors
 
 #------------------------------------------------------------------------------
 # Urls
 #------------------------------------------------------------------------------
 
 _SEARCH_URL = "http://archive.org/advancedsearch.php"
-_ETEXT_URL = "http://www.gutenberg.org/etext/%(etext)d"
-_PLUCKER_URL = "http://www.gutenberg.org/cache/plucker/%(etext)d/%(etext)d"
-_DOWNLOAD_URL_BASE = "http://www.gutenberg.org"
-
-#------------------------------------------------------------------------------
-# Page parsing
-#------------------------------------------------------------------------------
-
-#-- Search result page
-
-_GUTEN_SEARCH_RE_1 = _re.compile("""
-.*?
-<tr\s+class=".*?">
-  \s*
-  <td>(?P<etext>.*?)</td>
-  \s*
-  <td>(?P<infocol>.*?)</td>
-  \s*
-  <td>
-    (?P<authors>.*?)
-  </td>
-  \s*
-  <td>
-    \s*
-    <a\s+href="/[^/]+/(?P<etext2>\d+)/?">
-      (?P<title>.*?)
-    </a>
-    \s*
-  </td>
-  \s*
-  <td>(?P<language>.*?)</td>
-  \s*
-</tr>
-""", _re.X | _re.I)
-
-def _parse_gutenberg_search_html(html):
-    """
-    Parse search result page HTML
-    """
-    entries = []
-
-    # "Parse" entries
-    h = html
-    while h:
-        m = _GUTEN_SEARCH_RE_1.search(h)
-        if m:
-            h = h[m.end():]
-            g = m.groupdict()
-
-            try:
-                etext = int(g['etext'])
-            except (KeyError, ValueError):
-                continue
-
-            if 'stock_volume' in g.get('infocol', ''):
-                category = _(u'Audio book')
-            else:
-                category = u''
-
-            entries.append((
-                etext,
-                _parse_gutenberg_authors(unicode(_strip_tags(g.get('authors', '')), 'utf-8')),
-                unicode(_strip_tags(g.get('title', '')), 'utf-8'),
-                unicode(_strip_tags(g.get('language', '')), 'utf-8'),
-                category,
-                ))
-        else:
-            break
-
-    return entries
-
-#-- Ebook info page
-
-_GUTEN_ETEXT_RE_0 = _re.compile("""
-<td[^>]*dcterms:type[^>]*>(?P<category>.*?)</td>
-""", _re.X | _re.I)
-
-_GUTEN_ETEXT_RE_1 = _re.compile('''
-.*?
-<tr[^>]*pgterms:file[^>]*>
-  \s*
-  <td[^>]*dcterms:format[^>]*>
-    \s*
-    <a.*\s+href="(?P<url>[^"]*)"[^>]*>(?P<description>[^>]*)</a>
-''', _re.X | _re.I)
-
-def _parse_gutenberg_ebook_html(etext, html):
-    """
-    Parse etext page HTML
-    """
-    entries = []
-    
-    if '/cache/plucker' in html:
-        entries.append((
-            _PLUCKER_URL % dict(etext=etext),
-            'plucker'
-            ))
-
-    category = u''
-    
-    h = html
-
-    m = _GUTEN_ETEXT_RE_0.search(h)
-    if m:
-        g = m.groupdict()
-        category = unicode(_strip_tags(g.get('category', '').strip()),
-                           'utf-8')
-
-    while h:
-        m = _GUTEN_ETEXT_RE_1.search(h)
-        if m:
-            h = h[m.end():]
-            g = m.groupdict()
-
-            url = g.get('url', '').strip()
-            description = unicode(_strip_tags(g.get('description', '')).strip(),
-                             'utf-8')
-
-            if url:
-                if url.startswith('/'):
-                    url = _DOWNLOAD_URL_BASE + url
-                entries.append((url, description))
-        else:
-            break
-
-    return entries, dict(category=category)
-
-#-- Author name lists
-
-def _parse_gutenberg_authors(aut):
-    authors = []
-
-    ss = aut.strip().split("\n")
-    for row in ss:
-        s = row.strip()
-        name = u''
-        real_name = u''
-        role = u''
-        date = u''
-        title = u''
-
-        # Role
-        m = _re.search(ur'\[(\w+)\]\s*$', s)
-        if m:
-            role = m.group(1).lower()
-            s = s[:m.start()]
-
-        # Date
-        for dt in (ur'(\d+\??-\d+\??)\s*$', ur'(\d+\??-)\s*$',
-                   ur'(-\d+\??)\s*$', ur'(\d+\??\s+BC-\d+\??\s+BC)',
-                   ur'(\d+\??\s+BC-)', ur'(-\d+\??\s+BC)',
-                   ):
-            m = _re.search(dt, s)
-            if m:
-                date = m.group(1)
-                s = s[:m.start()]
-                break
-
-        s = _re.sub(ur',\s*$', '', s)
-
-        # Title fragments
-        m = _re.search(ur'\)(,\s+[^\)]+)\s*$', s)
-        if m:
-            title = m.group(1)
-            s = s[:m.start()+1]
-
-        # Real name
-        m = _re.search(ur'\(([^\)]+)\)\s*$', s)
-        if m:
-            real_name = m.group(1).strip()
-            s = s[:m.start()]
-
-        # Name
-        name = s.strip()
-        if not name:
-            if row.strip():
-                authors.append((row.strip(), u'', u'', u''))
-        else:
-            authors.append((name, real_name+title, date, role))
-
-    return authors
+_DOWNLOAD_URL_BASE = "http://archive.org/download"
+_DOWNLOAD_FILE = _DOWNLOAD_URL_BASE+"/%(id)s/%(f)s"
+_DOWNLOAD_FILES_SUFFIX = "_files.xml"
+_DOWNLOAD_FILES = _DOWNLOAD_URL_BASE+"/%(id)s/%(id)s"+_DOWNLOAD_FILES_SUFFIX
