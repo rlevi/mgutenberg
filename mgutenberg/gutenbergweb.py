@@ -46,7 +46,7 @@ def search(author=None, title=None, etextnr=None, subject=None, pageno=0):
         q.append(('creator:(' + author + ')'))
     if subject:
         q.append(('subject:(' + subject + ')'))
-    q.append(('collection:(' + 'gutenberg' + ')'))
+    #q.append(('collection:(' + 'gutenberg' + ')'))
     query = ' AND '.join(cond for cond in q)
 
     data = _urllib.urlencode([('q', unicode(query))])
