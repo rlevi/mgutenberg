@@ -49,7 +49,10 @@ def search(author=None, title=None, etextnr=None, subject=None, pageno=0):
 
     data = _urllib.urlencode([('q', unicode(query))])
 
-    url = _SEARCH_URL + '?' + data + '&output=json&fl[]=identifier'
+    info = [	'collection', 'identifier',
+                'creator', 'title', 'language', 'subject',
+		'type', 'source']
+    url = _SEARCH_URL + '?' + data + '&output=json&fl[]=' + '&fl[]='.join(x for x in info)
     
     output = _fetch_page(url)
     entries = [] #FIXME: parse json here
