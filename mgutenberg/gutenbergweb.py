@@ -38,15 +38,16 @@ def search(author=None, title=None, etextnr=None, subject=None, pageno=0):
         authors = [(name, real_name, date, role), ...]
     """
 
-    query = ''
+    q = []
 
     if title:
-        query = query + 'title:(' + title + ')' + ' AND '
+        q.append(('title:(' + title + ')'))
     if author:
-        query = query + 'creator:(' + author + ')' + ' AND '
+        q.append(('creator:(' + author + ')'))
     if subject:
-        query = query + 'subject:(' + subject + ')' + ' AND '
-    query = query + 'collection:(' + 'gutenberg' + ')'
+        q.append(('subject:(' + subject + ')'))
+    q.append(('collection:(' + 'gutenberg' + ')'))
+    query = ' AND '.join(cond for cond in q)
 
     data = _urllib.urlencode([('q', unicode(query))])
 
