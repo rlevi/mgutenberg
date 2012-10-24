@@ -104,6 +104,24 @@ def _parse_archive_json(json):
 
 	docs = j['response']['docs']
 	for book in docs:
+		"""
+		check for missing fields
+		"""
+		for key in 'creator', 'language':
+			try:
+				book[key]
+			except KeyError:
+				book[key] = []
+
+		for key in 'title', 'mediatype':
+			try:
+				book[key]
+			except KeyError:
+				book[key] = u''
+
+		"""
+		fill book entry
+		"""
 		authors = _parse_archive_authors(book['creator'])
 
 		entries.append((
