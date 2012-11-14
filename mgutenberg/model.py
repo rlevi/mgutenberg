@@ -32,6 +32,19 @@ from util import *
 
 class OverwriteFileException(Exception): pass
 
+valid_ext = ['.txt',
+             '.html', '.htm',
+             '.fb2',
+             '.chm',
+             '.rtf',
+             '.oeb',
+             '.zip',
+             '.prc', '.pdb', '.mobi',
+             '.orb',
+             '.opf', '.oebzip',
+             '.tcr',
+             '.tgz', '.ipk',
+             ]
 
 #------------------------------------------------------------------------------
 # Local book list
@@ -46,19 +59,6 @@ def _is_caps_case(x):
         return x[0] == x[0].upper() and x[1] == x[1].lower()
 
 def get_valid_basename(base):
-    valid_ext = ['.txt',
-                 '.html', '.htm',
-                 '.fb2',
-                 '.chm',
-                 '.rtf',
-                 '.oeb',
-                 '.zip',
-                 '.prc', '.pdb', '.mobi',
-                 '.orb',
-                 '.opf', '.oebzip',
-                 '.tcr',
-                 '.tgz', '.ipk',
-                 ]
     skip_ext = ['.gz', '.bz2', '.tar', '.utf8', '.ascii', '.gen']
 
     while True:

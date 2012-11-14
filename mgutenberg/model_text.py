@@ -15,6 +15,7 @@ import re
 from StringIO import StringIO
 
 from HTMLParser import HTMLParser
+from model import valid_ext
 import htmlentitydefs
 
 import xml.etree.ElementTree as etree
@@ -76,10 +77,8 @@ class EbookText(gtk.TextBuffer):
 
     def _pick_zip_name(self, names):
         for name in names:
-            if name.endswith('.htm') or name.endswith('.html'):
-                return name
-        for name in names:
-            if name.endswith('.txt'):
+            base, ext = os.path.splitext(name)
+	    if ext in valid_ext:
                 return name
         raise UnsupportedFormat("Zip file does not appear to contain text")
 
