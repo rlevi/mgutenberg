@@ -1,7 +1,7 @@
 Source: mgutenberg
 Priority: optional
 Maintainer: Pauli Virtanen <pav@iki.fi>
-Build-Depends: debhelper, python2.5, python-hildon, perl, maemo-optify
+Build-Depends: debhelper, python2.5, python-simplejson, python-hildon, perl, maemo-optify
 Standards-Version: 3.6.1
 
 Package: mgutenberg

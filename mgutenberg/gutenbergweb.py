@@ -17,7 +17,16 @@ Routines
   Returns [(url, format, encoding, compression), ...]
 """
 import urllib as _urllib, re as _re
-import json as _json, xml.etree.ElementTree as _xml
+import xml.etree.ElementTree as _xml
+
+"""
+python2.5 hack here:
+"""
+try:
+	    import json as _json
+except ImportError:
+	    import simplejson as _json
+
 from gettext import gettext as _
 
 from util import *
