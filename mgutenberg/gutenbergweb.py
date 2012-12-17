@@ -66,6 +66,7 @@ def search(author=None, title=None, etextnr=None, subject=None, pageno=0):
     url = _SEARCH_URL + '?' + data + '&output=json&fl[]=' + '&fl[]='.join(x for x in info)
     url = url + '&mediatype=texts'
     url = url + '&rows=' + str(_SEARCH_RESULT_ROWS) + '&page=' + str(pageno+1)
+    #url = url + '&indent=yes'
     
     output = _fetch_page(url)
     entries = _parse_archive_json(output)
