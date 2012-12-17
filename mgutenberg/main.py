@@ -224,7 +224,7 @@ class MainWindow(object):
         # Gutenberg tab
         page = gtk.VBox()
         page.pack_end(self.gutenberg_search.widget, expand=True, fill=True)
-        self.notebook.append_page(page, gtk.Label(_("Gutenberg")))
+        self.notebook.append_page(page, gtk.Label(_("Archive.org")))
 
         self.gutenberg_search.search_button.grab_default()
 
@@ -365,7 +365,7 @@ class MainWindow(object):
         menu = hildon.AppMenu()
 
         # Filter buttons
-        self.gutenberg_button = gtk.ToggleButton(label=_("Gutenberg"))
+        self.gutenberg_button = gtk.ToggleButton(label=_("Archive.org"))
         self.book_button = gtk.ToggleButton(label=_("Local books"))
         self.recent_button = gtk.ToggleButton(label=_("Recent"))
 
