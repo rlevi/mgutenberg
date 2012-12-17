@@ -1,3 +1,10 @@
+mgutenberg (0.4.1-1) maverick; urgency=low
+
+  * Add Internet Archive JSON API
+  * Changed search catalog from Project Gutenberg to Internet Archive
+
+ -- Ilya Levin <rlevi@sdf.org>  Mon, 17 Dec 2012 20:48:56 +0400
+
 mgutenberg (0.4-1) maverick; urgency=low
 
   * Add "Recent books" list.
