@@ -4,7 +4,7 @@ MGutenberg
 
 :Author: Pauli Virtanen <pav@iki.fi>
 
-Ebook organizer and Project Gutenberg downloader, for Nokia Internet Tablets.
+Ebook organizer and Internet Archive downloader, for Nokia Internet Tablets.
 
 
 Aims
@@ -16,7 +16,7 @@ Aims
 - Sensible organization of Ebooks on disk:
   Store books in folder structure "Author/Author - Title [language]".
 
-- Easy searching and downloading books from the Project Gutenberg catalog:
+- Easy searching and downloading books from the Internet Archive catalog:
   Download an ebook to its correct place on disk with 4 taps of the stylys.
 
 - Easy to use on Nokia Internet Tablets (Maemo):
