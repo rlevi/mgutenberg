@@ -55,7 +55,8 @@ def search(author=None, title=None, etextnr=None, subject=None, pageno=0):
                 'creator', 'title', 'language', 'subject',
                 'source']
     url = _SEARCH_URL + '?' + data + '&output=json&fl[]=' + '&fl[]='.join(x for x in info)
-    url = url + '&mediatype=texts' + '&rows=256&page=1'
+    url = url + '&mediatype=texts'
+    url = url + '&rows=' + str(_SEARCH_RESULT_ROWS) + '&page=' + str(pageno+1)
     
     output = _fetch_page(url)
     entries = _parse_archive_json(output)
@@ -168,3 +169,4 @@ _DOWNLOAD_URL_BASE = "http://archive.org/download"
 _DOWNLOAD_FILE = _DOWNLOAD_URL_BASE+"/%(id)s/%(f)s"
 _DOWNLOAD_FILES_SUFFIX = "_files.xml"
 _DOWNLOAD_FILES = _DOWNLOAD_URL_BASE+"/%(id)s/%(id)s"+_DOWNLOAD_FILES_SUFFIX
+_SEARCH_RESULT_ROWS = 64
