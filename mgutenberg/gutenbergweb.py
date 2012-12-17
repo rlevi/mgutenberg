@@ -31,6 +31,13 @@ from gettext import gettext as _
 
 from util import *
 
+readable_formats = [ 'Text', 'HTML', 'XML', 'ZIP', #'Single Book Page Text',
+                     #'EPUB', 'Text PDF', 'DjVuTXT', 'Rich Text Format', 'TGZiped Text Files', #TODO add decoder
+		     #'PDF', 'DjVu', 'Standard LuraTech PDF', # i want to belive
+		     #'Word Document',
+		     #'JPEG', 'TIFF', 'Single Page Processed TIFF ZIP', 'MARC', 'Image Container PDF',
+		   ]
+
 #------------------------------------------------------------------------------
 # Interface routines
 #------------------------------------------------------------------------------
@@ -56,12 +63,14 @@ def search(author=None, title=None, etextnr=None, subject=None, pageno=0):
     if subject:
         q.append(('subject:(' + subject + ')'))
     #q.append(('collection:(' + 'gutenberg' + ')'))
+    q.append(('format:(' + ' OR '.join(fmt for fmt in readable_formats) + ')'))
     query = ' AND '.join(cond for cond in q)
 
     data = _urllib.urlencode([('q', unicode(query))])
 
     info = [	'collection', 'identifier',
                 'creator', 'title', 'language', 'subject',
+		'format',
                 'source']
     url = _SEARCH_URL + '?' + data + '&output=json&fl[]=' + '&fl[]='.join(x for x in info)
     url = url + '&mediatype=texts'
@@ -105,7 +114,6 @@ def _fetch_page(url):
     finally:
         h.close()
 
-
 def _parse_archive_json(json):
 	"""
 	Parse json reply into entries
@@ -136,13 +144,16 @@ def _parse_archive_json(json):
 		"""
 		authors = _parse_archive_authors(book['creator'])
 
-		entries.append((
-				book['identifier'],
-				authors,
-				book['title'],
-				','.join(x for x in book['language']),
-				_(book['mediatype'])
-				))
+		for fmt in readable_formats:
+			if fmt in book['format']:
+				entries.append((
+						book['identifier'],
+						authors,
+						book['title'],
+						','.join(x for x in book['language']),
+						_(book['mediatype'])
+						))
+				continue
 
 	return entries
 
