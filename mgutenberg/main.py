@@ -772,7 +772,7 @@ class GutenbergSearchWidget(object):
                 self.app.error_message(_("Error in fetching search results"),
                                        r)
 
-        if int(entry[4]) == NEXT_ID:
+        if entry[4] == NEXT_ID:
             notify_cb = self.app.show_notify(self.widget, _("Searching..."))
             self.results.next_page(callback=done_cb, pre_callback=pre_cb)
             return
