@@ -1,13 +1,13 @@
 Source: mgutenberg
 Priority: optional
 Maintainer: Pauli Virtanen <pav@iki.fi>
-Build-Depends: debhelper, python2.5, python-simplejson, python-hildon, perl, maemo-optify
+Build-Depends: debhelper, python2.5, python-hildon, perl, maemo-optify
 Standards-Version: 3.6.1
 
 Package: mgutenberg
 Section: user/utilities
 Architecture: all
-Depends: python2.5, python-hildon
+Depends: python2.5, python-hildon, python-simplejson
 Suggests: fbreader
 XB-Maemo-Display-Name: MGutenberg E-Book Reader
 XB-Maemo-Icon-26:
