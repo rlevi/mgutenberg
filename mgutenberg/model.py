@@ -33,7 +33,7 @@ from util import *
 class OverwriteFileException(Exception): pass
 
 valid_ext = ['.txt',
-             '.html', '.htm',
+             '.html', '.htm', '.shtml', '.xhtml',
              '.fb2',
              '.chm',
              '.rtf',
