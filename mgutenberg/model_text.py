@@ -84,7 +84,7 @@ class EbookText(gtk.TextBuffer):
 
     def _load_stream(self, filename, f):
         basefn, ext = os.path.splitext(filename)
-        if ext in ('.html', '.htm'):
+        if ext in ('.html', '.htm', '.shtml', '.xhtml'):
             self._load_html(f)
         elif ext in ('.txt', '.rst', '.utf8', '.ascii'):
             self._load_plain_text(f)
@@ -106,7 +106,7 @@ class EbookText(gtk.TextBuffer):
         class HandleHTML(HTMLParser):
             tags = []
             in_body = False
-            encoding = 'latin1'
+            encoding = 'utf-8'
             para = u""
             omit = 0
             slurp_space = True
@@ -364,7 +364,7 @@ def detect_encoding(text):
     if '\x92' in text:
         encodings.append('windows-1250')
     else:
-        encodings.append('latin1')
+        encodings.append('utf-8')
     return encodings
 
 def rewrap(text):
