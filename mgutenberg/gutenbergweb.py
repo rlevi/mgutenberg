@@ -31,7 +31,7 @@ from gettext import gettext as _
 
 from util import *
 
-readable_formats = [ 'Text', 'HTML', 'XML', 'ZIP', #'Single Book Page Text',
+readable_formats = [ 'Text', 'HTML', 'XML', 'ZIP', 'PalmOS Plucker', #'Single Book Page Text',
                      #'EPUB', 'Text PDF', 'DjVuTXT', 'Rich Text Format', 'TGZiped Text Files', #TODO add decoder
 		     #'PDF', 'DjVu', 'Standard LuraTech PDF', # i want to belive
 		     #'Word Document',
