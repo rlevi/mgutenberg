@@ -37,12 +37,14 @@ class EpubFile(object):
 	href = dict()
 
 	for child in manifest.findall(NS + 'item'):
-	    href[child.attrib['id']] = child.attrib['href']
+	    if child.attrib['media-type'] == 'application/xhtml+xml':
+	        href[child.attrib['id']] = child.attrib['href']
 
 	self.toc = collections.OrderedDict()
 	for child in spine.findall(NS + 'itemref'):
 	    idref = child.attrib['idref']
-	    self.toc[idref] = href[idref]
+	    if idref in href:
+	        self.toc[idref] = href[idref]
 	    #print idref, " -> ", self.toc[idref], " -> ",  href[idref]
 
 	return self.toc
