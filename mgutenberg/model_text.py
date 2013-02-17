@@ -19,7 +19,7 @@ from model import valid_ext
 import htmlentitydefs
 
 import xml.etree.ElementTree as etree
-import plucker
+import plucker, epub
 
 class UnsupportedFormat(IOError):
     pass
@@ -66,6 +66,8 @@ class EbookText(gtk.TextBuffer):
                 zf.close()
             elif ext == '.pdb':
                 f = plucker.PluckerFile(filename)
+            elif ext == '.epub':
+                f = epub.EpubFile(filename)
             else:
                 f = open(filename, 'rb')
 
@@ -90,6 +92,8 @@ class EbookText(gtk.TextBuffer):
             self._load_plain_text(f)
         elif ext in ('.pdb'):
             self._load_plucker(f)
+        elif ext == '.epub':
+            self._load_epub(f)
         elif ext in ('.fb2'):
             self._load_fb2(f)
         else:
@@ -266,6 +270,133 @@ class EbookText(gtk.TextBuffer):
                     set_tag(self.tag_big, True)
                 else:
                     del tags[:]
+
+    def _load_epub(self, f):
+	parent = self
+
+        class HandleXHTML(HTMLParser):
+            tags = []
+            in_body = False
+            encoding = 'utf-8'
+            para = u""
+            omit = 0
+            slurp_space = True
+            in_pre = False
+
+            def handle_starttag(self, tag, attrs):
+                self.flush()
+                if tag in ('h1', 'h2', 'h3', 'h4'):
+                    self._append(u'\n\n')
+                    self.tags.append(parent.tag_big)
+                elif tag == 'p' or tag == 'br' or tag == 'div':
+                    self.tags = []
+                    self._append(u'\n')
+                    self.slurp_space = True
+                elif tag == 'tr':
+                    self.tags = []
+                    self._append(u'\n')
+                    self.slurp_space = True
+                elif tag == 'td':
+                    self._append(u'\t')
+                elif tag == 'i' or tag == 'em':
+                    self.tags.append(parent.tag_emph)
+                elif tag == 'b' or tag == 'strong' or tag == 'bold':
+                    self.tags.append(parent.tag_bold)
+                elif tag == 'hr':
+                    self._append(u'\n')
+                elif tag == 'body':
+                    self.in_body = True
+                elif tag == 'style':
+                    self.omit += 1
+                elif tag == 'meta' and not self.in_body:
+                    self.handle_meta(attrs)
+                elif tag == 'pre':
+                    self.in_pre = True
+                elif tag == 'img':
+                    attrs = dict(attrs)
+                    if 'alt' in attrs and attrs['alt'].strip():
+                        self.handle_data(u'[IMAGE: ')
+                        self.handle_data(attrs['alt'].strip().upper())
+                        self.handle_data(u']')
+                    else:
+                        self.handle_data(u'[IMAGE]')
+
+            def handle_meta(self, attrs):
+                attrs = dict(attrs)
+                if not attrs.get('http-equiv', "").lower() == 'content-type':
+                    return
+                content = attrs.get('content', "")
+
+                m = re.search(r'charset\s*=\s*([a-zA-Z0-9-]+)', content)
+                if m:
+                    encoding = m.group(1).lower()
+                    try:
+                        unicode('', encoding)
+                        self.encoding = encoding
+                    except UnicodeError:
+                        pass
+
+            def handle_endtag(self, tag):
+                self.flush()
+                if tag == 'style':
+                    self.omit -= 1
+                elif tag in ('h1', 'h2', 'h3', 'h4'):
+                    if self.tags:
+                        self.tags.pop()
+                    self._append('\n')
+                elif tag in ('i', 'em', 'b', 'strong', 'bold'):
+                    if self.tags:
+                        self.tags.pop()
+                elif tag == 'pre':
+                    self.in_pre = False
+
+            def handle_data(self, data):
+                if self.omit:
+                    return
+                if not isinstance(data, unicode):
+                    try:
+                        data = unicode(data, self.encoding)
+                    except UnicodeError:
+                        data = unicode(data, 'latin1')
+
+                data = data.replace('\r', '')
+                if not self.in_pre:
+                    data = data.replace('\n', ' ')
+                    if self.slurp_space:
+                        data = data.lstrip()
+                if data:
+                    self.para += data
+                    self.slurp_space = False
+
+            def handle_charref(self, name):
+                try:
+                    self.para += unicode(chr(int(name)), 'latin1')
+                except (UnicodeError, ValueError):
+                    self.para += '?'
+
+            def handle_entityref(self, name):
+                self.para += u'%c' % htmlentitydefs.name2codepoint.get(name, 63)
+
+            def _append(self, text):
+                parent.insert_with_tags(parent.get_end_iter(),
+                                        text.encode('utf-8'), *self.tags)
+
+            def flush(self):
+                if self.para:
+                    self._append(self.para)
+                    self.para = u""
+
+        self.insert(parent.get_end_iter(), f.description.encode('utf-8'))
+
+	pref = os.path.dirname(f.opfname)
+
+	html = HandleXHTML()
+	for xhtml in list(f.toc):
+		raw_text = f.zf.read(os.path.join(pref, xhtml))
+
+		html.feed(raw_text)
+		html.flush()
+
 
     def _load_fb2(self, f):
         def set_tag(tag, flag):
