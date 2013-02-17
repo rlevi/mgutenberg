@@ -60,6 +60,6 @@ if __name__ == "__main__":
     pref = os.path.dirname(f.opfname)
     for (_, href) in f.toc.items():
         print href
-	print f.zf.read(pref+'/'+href)
+	print f.zf.read(os.path.join(pref, href))
 
     print time.time() - start
