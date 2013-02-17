@@ -19,7 +19,7 @@ from model import valid_ext
 import htmlentitydefs
 
 import xml.etree.ElementTree as etree
-import plucker
+import plucker, epub
 
 class UnsupportedFormat(IOError):
     pass
@@ -66,6 +66,8 @@ class EbookText(gtk.TextBuffer):
                 zf.close()
             elif ext == '.pdb':
                 f = plucker.PluckerFile(filename)
+            elif ext == '.epub':
+                f = epub.EpubFile(filename)
             else:
                 f = open(filename, 'rb')
 
@@ -90,6 +92,8 @@ class EbookText(gtk.TextBuffer):
             self._load_plain_text(f)
         elif ext in ('.pdb'):
             self._load_plucker(f)
+        elif ext == '.epub':
+            self._load_epub(f)
         elif ext in ('.fb2'):
             self._load_fb2(f)
         else:
@@ -266,6 +270,9 @@ class EbookText(gtk.TextBuffer):
                     set_tag(self.tag_big, True)
                 else:
                     del tags[:]
+
+    def _load_epub(self, f):
+        print("THERE")
 
     def _load_fb2(self, f):
         def set_tag(tag, flag):
