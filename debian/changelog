@@ -1,3 +1,9 @@
+mgutenberg (0.4.2-2) maverick; urgency=low
+
+  * Epub description fix if title, creator, language, or description missing
+
+ -- Ilya Levin <rlevi@sdf.org>  Mon, 18 Feb 2013 01:59:20 +0400
+
 mgutenberg (0.4.2-1) maverick; urgency=low
 
   * Epub format handling by mgutenberg itself

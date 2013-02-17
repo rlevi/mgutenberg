@@ -37,10 +37,22 @@ class EpubFile(object):
 	manifest = pkg.find(NS + 'manifest')
 	spine = pkg.find(NS + 'spine')
 
-        self.description = self.description + metadata.find(DCNS + 'title').text + "\n"
-        self.description = self.description + metadata.find(DCNS + 'creator').text + "\n"
-        self.description = self.description + metadata.find(DCNS + 'language').text + "\n"
-        self.description = self.description + metadata.find(DCNS + 'description').text + "\n"
+        try:
+	    self.description = self.description + metadata.find(DCNS + 'title').text + "\n"
+	except AttributeError:
+	    print "dc:title not defined"
+        try:
+	    self.description = self.description + metadata.find(DCNS + 'creator').text + "\n"
+	except AttributeError:
+	    print "dc:creator not defined"
+        try:
+	    self.description = self.description + metadata.find(DCNS + 'language').text + "\n"
+	except AttributeError:
+	    print "dc:language not defined"
+        try:
+	    self.description = self.description + metadata.find(DCNS + 'description').text + "\n"
+	except AttributeError:
+	    print "dc:description not defined"
 
 	href = dict()
 
