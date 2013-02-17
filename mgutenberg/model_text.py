@@ -386,6 +386,8 @@ class EbookText(gtk.TextBuffer):
                     self._append(self.para)
                     self.para = u""
 
+        self.insert(parent.get_end_iter(), f.description.encode('utf-8'))
+
 	pref = os.path.dirname(f.opfname)
 
 	html = HandleXHTML()

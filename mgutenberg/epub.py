@@ -15,6 +15,8 @@ import zipfile
 import xml.etree.ElementTree as ET
 
 class EpubFile(object):
+    description = ""
+
     def __init__(self, filename):
 	self.zf = zipfile.ZipFile(filename, 'r')
 	self.get_opf(self.zf)
@@ -26,6 +28,7 @@ class EpubFile(object):
 
     def get_toc(self, f, opfname):
         NS = '{http://www.idpf.org/2007/opf}'
+	DCNS = '{http://purl.org/dc/elements/1.1/}'
 
 	content = f.read(opfname)
 	pkg = ET.fromstring(content)
@@ -33,6 +36,11 @@ class EpubFile(object):
 	metadata = pkg.find(NS + 'metadata')
 	manifest = pkg.find(NS + 'manifest')
 	spine = pkg.find(NS + 'spine')
+
+        self.description = self.description + metadata.find(DCNS + 'title').text + "\n"
+        self.description = self.description + metadata.find(DCNS + 'creator').text + "\n"
+        self.description = self.description + metadata.find(DCNS + 'language').text + "\n"
+        self.description = self.description + metadata.find(DCNS + 'description').text + "\n"
 
 	href = dict()
 
@@ -56,10 +64,11 @@ if __name__ == "__main__":
     import time
     start = time.time()
 
+    print f.description
     pref = os.path.dirname(f.opfname)
     for href in list(f.toc):
-        print href
-	print f.zf.read(os.path.join(pref, href))
+	text = f.zf.read(os.path.join(pref, href))
+        #print href, ": ", text
 
 
     print time.time() - start
