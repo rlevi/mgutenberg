@@ -58,9 +58,10 @@ if __name__ == "__main__":
     import time
     start = time.time()
 
+    pref = os.path.dirname(f.opfname)
     for (_, href) in f.toc.items():
         print href
-	ch = f.zf.open('OPS/'+href, 'r')
+        ch = f.zf.open(pref+'/'+href, 'r')
 	for line in ch:
 		print line
 	ch.close()
