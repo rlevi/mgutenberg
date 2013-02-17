@@ -390,7 +390,7 @@ class EbookText(gtk.TextBuffer):
 
 	html = HandleXHTML()
 	for (_, xhtml) in f.toc.items():
-		raw_text = f.zf.open(pref + "/" + xhtml).read()
+		raw_text = f.zf.read(pref + "/" + xhtml)
 
 		html.feed(raw_text)
 		html.flush()
