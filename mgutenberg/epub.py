@@ -40,12 +40,11 @@ class EpubFile(object):
 	    if child.attrib['media-type'] == 'application/xhtml+xml':
 	        href[child.attrib['id']] = child.attrib['href']
 
-	self.toc = collections.OrderedDict()
+	self.toc = collections.deque()
 	for child in spine.findall(NS + 'itemref'):
 	    idref = child.attrib['idref']
 	    if idref in href:
-	        self.toc[idref] = href[idref]
-	    #print idref, " -> ", self.toc[idref], " -> ",  href[idref]
+		self.toc.append(href[idref])
 
 	return self.toc
 
@@ -58,8 +57,9 @@ if __name__ == "__main__":
     start = time.time()
 
     pref = os.path.dirname(f.opfname)
-    for (_, href) in f.toc.items():
+    for href in list(f.toc):
         print href
 	print f.zf.read(os.path.join(pref, href))
+
 
     print time.time() - start
